@@ -14,6 +14,14 @@ func welcome(c *fiber.Ctx) error {
 
 func setupRoutes(app *fiber.App) {
 	app.Get("/api", welcome)
+
+	// Garbage Endpoints
+	app.Delete("/api/auth/delete", routes.DeleteUser)
+	app.Post("/api/auth/authenticate", routes.AuthenticateJWTToken)
+	////////
+	////////
+	////////
+
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
 	app.Post("/api/auth/signup", routes.Signup)
