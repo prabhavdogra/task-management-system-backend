@@ -3,7 +3,6 @@ package routes
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"time"
 	"to-do-backend/database"
 	"to-do-backend/models"
@@ -29,13 +28,13 @@ func CheckAgainstLoggedOutTokens(token string) bool {
 
 var sampleSecretKey = []byte("GoLinuxCloudKey")
 
-func CreateJWT(user models.User) (string, error) {
+func CreateJWT(email string, expTime int64) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
 	claims["authorized"] = true
-	claims["username"] = user.EmailID
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	claims["username"] = email
+	claims["exp"] = expTime
 
 	tokenString, err := token.SignedString(sampleSecretKey)
 
@@ -55,7 +54,7 @@ func Signup(c *fiber.Ctx) error {
 	}
 	user.Password = HashPassword(user.Password, GetSalt())
 	database.Database.Db.Save(&user)
-	token, err := CreateJWT(user)
+	token, err := CreateJWT(user.EmailID, time.Now().Add(time.Minute*30).Unix())
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
@@ -96,40 +95,41 @@ func DoPasswordsMatch(hashedPassword string, currPassword string, salt []byte) b
 // 	return c.JSON(fiber.Map{"k": x})
 // }
 
+func authenticateHelper(tokenStr string) (jwt.MapClaims, bool) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		return sampleSecretKey, nil
+	})
+
+	if err != nil {
+		return nil, false
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, true
+	} else {
+		return nil, false
+	}
+}
+
 func AuthenticateJWTToken(c *fiber.Ctx) error {
-	// CheckAgainstLoggedOutTokens()
 	type AuthData struct {
 		Authorization string `json:"authorization"`
 	}
 	var authData AuthData
 	err := c.ReqHeaderParser(&authData)
 	if err != nil {
-		return c.Status(400).SendString(err.Error())
+		return c.Status(400).SendString("No JWT Token Found")
 	}
-	token, err := jwt.Parse(authData.Authorization[7:], func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("There was an error in parsing")
-		}
-		return sampleSecretKey, nil
-	})
-
-	if token == nil {
-		return c.Status(400).SendString(err.Error())
+	claims, validToken := authenticateHelper(authData.Authorization)
+	if !validToken {
+		return c.Status(400).SendString("Claims not verified")
 	}
-	claims, _ := token.Claims.(jwt.MapClaims)
-	if !token.Valid {
-		return c.Status(400).SendString("Invalid token")
+	if claims["authorized"] == false {
+		return c.Status(400).SendString("You are not authorized")
 	}
-
 	if expiresAt, ok := claims["exp"]; ok && int64(expiresAt.(float64)) < time.Now().UTC().Unix() {
 		return c.Status(400).SendString("Session expired!")
 	}
-	return c.Status(400).SendString("Valid Token!")
-	// }
-	// if token == nil {
-	// 	return false
-	// }
-	// return true
+	return c.Status(200).SendString("JWT Token Authenticated")
 }
 
 func Login(c *fiber.Ctx) error {
@@ -146,7 +146,7 @@ func Login(c *fiber.Ctx) error {
 	database.Database.Db.Where("email_id = ?", userCred.EmailID).First(&user)
 	hashedPassword := user.Password
 	if DoPasswordsMatch(hashedPassword, userCred.Password, randomSalt) {
-		token, err := CreateJWT(user)
+		token, err := CreateJWT(user.EmailID, time.Now().Add(time.Minute*30).Unix())
 		if err != nil {
 			return c.Status(400).SendString(err.Error())
 		}
@@ -158,8 +158,6 @@ func Login(c *fiber.Ctx) error {
 		return c.SendString("Login Unsuccessful")
 	}
 }
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2NzU3MDExMzcsInVzZXJuYW1lIjoiam9lbWFtYTEifQ.Yhr7EfdLxqqwQEfyA2otHjN0yycSx-WPf0OWHrM0Uc4
 
 func DeleteUser(c *fiber.Ctx) error {
 	// database.Database.Db.Delete(&User{}, 1)
