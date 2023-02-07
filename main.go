@@ -17,26 +17,23 @@ func setupRoutes(app *fiber.App) {
 
 	// Garbage Endpoints
 	app.Delete("/api/auth/delete", routes.DeleteUser)
-	app.Post("/api/auth/authenticate", routes.AuthenticateJWTToken)
-	////////
-	////////
-	////////
 
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
 	app.Post("/api/auth/signup", routes.Signup)
-	// User Endpoints
-	app.Post("/api/users", routes.CreateUser)
-	// app.Get("/api/users", routes.GetUsers)
-	// app.Get("/api/users/:id", routes.GetUser)
-	// app.Post("/api/users/:id", routes.UpdateUser)
-	// app.Delete("/api/users/:id", routes.DeleteUser)
+	app.Post("/api/auth/authenticate", routes.AuthenticateJWTToken)
+	app.Post("/api/auth/logout", routes.Logout)
 
-	// // Task Endpoints
-	// app.Post("/api/products", routes.CreateProduct)
-	// app.Get("/api/products", routes.GetProducts)
-	// app.Get("/api/products/:id", routes.GetProduct)
-	// app.Put("/api/products/:id", routes.UpdateProduct)
+	// User Endpoints
+	app.Post("/api/user/create", routes.CreateUser)
+	app.Get("/api/user/get/email/:email", routes.GetUserByEmail)
+	app.Post("/api/user/update/:id", routes.UpdateUser)
+
+	// Task Endpoints
+	app.Post("/api/task/create", routes.CreateTask)
+	app.Get("/api/task", routes.GetAllTasks)
+	app.Post("/api/task/update", routes.UpdateTask)
+	app.Delete("/api/task/:id", routes.DeleteTask)
 }
 
 func main() {

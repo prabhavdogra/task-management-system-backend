@@ -8,5 +8,5 @@ type Task struct {
 	Heading   string `json:"heading"`
 	Content   string `json:"content"`
 	Progress  int    `json:"progress"`
-	// User      User   `gorm:"references:UserID"`
+	UserID    uint   `json:"user_id"`
 }

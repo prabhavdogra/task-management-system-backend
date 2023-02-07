@@ -27,6 +27,6 @@ func ConnectDb() {
 	log.Println("Running Migrations")
 
 	// Add Migrations
-	db.AutoMigrate(&models.User{}, &models.Task{})
+	db.AutoMigrate(&models.User{}, &models.Task{}, &models.BlacklistedToken{})
 	Database = Dbinstance{Db: db}
 }

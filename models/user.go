@@ -9,4 +9,5 @@ type User struct {
 	EmailID   string `json:"email_id"`
 	Password  string `json:"password"`
 	PhoneNo   string `json:"phone_no"`
+	Tasks     []Task `json:"tasks"`
 }

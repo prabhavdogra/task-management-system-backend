@@ -57,8 +57,26 @@ func findUser(id int, user *models.User) error {
 	return nil
 }
 
+func findUserByEmail(email string, user *models.User) error {
+	database.Database.Db.Find(&user, "email_id = ?", email)
+	if user.ID == 0 {
+		return errors.New("User does not exist")
+	}
+	return nil
+}
+
+func GetUserByEmail(c *fiber.Ctx) error {
+	email := c.Params("email")
+	var user models.User
+	if err := findUserByEmail(email, &user); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+	responseUser := CreateResponseUser(user)
+	return c.Status(200).JSON(responseUser)
+}
+
 func GetUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	id, err := c.ParamsInt("email")
 	var user models.User
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
