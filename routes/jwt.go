@@ -68,15 +68,8 @@ func AuthenticateRequest(c *fiber.Ctx) bool {
 }
 
 func AuthenticateJWTToken(c *fiber.Ctx) error {
-	type AuthData struct {
-		Authorization string `json:"authorization"`
-	}
-	var authData AuthData
-	err := c.ReqHeaderParser(&authData)
-	if err != nil {
-		return c.Status(400).SendString("No JWT Token Found")
-	}
-	claims, validToken := authenticateHelper(authData.Authorization)
+	JWTToken := c.Params("id")
+	claims, validToken := authenticateHelper(JWTToken)
 	if !validToken {
 		return c.Status(400).SendString("Invalid Token")
 	}

@@ -36,7 +36,7 @@ func Signup(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-	return c.Status(400).JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"token": token,
 	})
 }
@@ -63,12 +63,11 @@ func Login(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(400).SendString(err.Error())
 		}
-
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(200).JSON(fiber.Map{
 			"token": token,
 		})
 	} else {
-		return c.SendString("Login Unsuccessful")
+		return c.Status(400).SendString("Login Unsuccessful! Invalid Credentials")
 	}
 }
 

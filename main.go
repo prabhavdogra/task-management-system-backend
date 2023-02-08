@@ -6,6 +6,7 @@ import (
 	"to-do-backend/routes"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func welcome(c *fiber.Ctx) error {
@@ -21,7 +22,7 @@ func setupRoutes(app *fiber.App) {
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
 	app.Post("/api/auth/signup", routes.Signup)
-	app.Post("/api/auth/authenticate", routes.AuthenticateJWTToken)
+	app.Get("/api/auth/authenticate/:id", routes.AuthenticateJWTToken)
 	app.Post("/api/auth/logout", routes.Logout)
 
 	// User Endpoints
@@ -39,6 +40,14 @@ func setupRoutes(app *fiber.App) {
 func main() {
 	database.ConnectDb()
 	app := fiber.New()
+	// Default config
+	app.Use(cors.New())
+
+	// Or extend your config for customization
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 	setupRoutes(app)
-	log.Fatal(app.Listen(":3002"))
+	log.Fatal(app.Listen(":3000"))
 }
