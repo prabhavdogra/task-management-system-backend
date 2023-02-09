@@ -22,13 +22,13 @@ func setupRoutes(app *fiber.App) {
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
 	app.Post("/api/auth/signup", routes.Signup)
-	app.Get("/api/auth/authenticate/:id", routes.AuthenticateJWTToken)
+	app.Post("/api/auth/authenticate", routes.AuthenticateJWTToken)
 	app.Post("/api/auth/logout", routes.Logout)
 
 	// User Endpoints
 	app.Post("/api/user/create", routes.CreateUser)
-	app.Get("/api/user/get/email/:email", routes.GetUserByEmail)
-	app.Post("/api/user/update/:id", routes.UpdateUser)
+	app.Get("/api/user/get", routes.GetUserByJWTToken)
+	app.Post("/api/user/update", routes.UpdateUser)
 
 	// Task Endpoints
 	app.Post("/api/task/create", routes.CreateTask)

@@ -18,10 +18,6 @@ func CheckEmailExists(email string) bool {
 	}
 }
 
-func CheckAgainstLoggedOutTokens(token string) bool {
-	return false
-}
-
 func Signup(c *fiber.Ctx) error {
 	var user models.User
 	if err := c.BodyParser(&user); err != nil {
@@ -40,10 +36,6 @@ func Signup(c *fiber.Ctx) error {
 		"token": token,
 	})
 }
-
-// func fn(c *fiber.Ctx, x string) error {
-// 	return c.JSON(fiber.Map{"k": x})
-// }
 
 func Login(c *fiber.Ctx) error {
 	randomSalt := GetSalt()
@@ -72,18 +64,21 @@ func Login(c *fiber.Ctx) error {
 }
 
 func Logout(c *fiber.Ctx) error {
+	if !AuthenticateRequest(c) {
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
+	}
 	type AuthData struct {
 		Authorization string `json:"authorization"`
 	}
 	var authData AuthData
 	err := c.ReqHeaderParser(&authData)
 	if err != nil {
-		return c.Status(400).SendString("No JWT Token Found")
+		return c.Status(201).SendString("No JWT Token Found")
 	}
 	token := models.BlacklistedToken{}
 	result := database.Database.Db.Where("blacklisted_token = ?", authData.Authorization).First(&token)
 	if result.RowsAffected == 1 {
-		return c.Status(400).SendString("Token already blacklisted")
+		return c.Status(201).SendString("Token already blacklisted")
 	} else {
 		token.BlacklistedToken = authData.Authorization
 		database.Database.Db.Save(&token)

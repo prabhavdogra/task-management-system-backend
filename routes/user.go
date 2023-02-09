@@ -2,6 +2,7 @@ package routes
 
 import (
 	"errors"
+	"fmt"
 	"to-do-backend/database"
 	"to-do-backend/models"
 
@@ -30,7 +31,7 @@ func CreateResponseUser(user models.User) User {
 func CreateUser(c *fiber.Ctx) error {
 	var user models.User
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return c.Status(201).JSON(err.Error())
 	}
 	database.Database.Db.Create(&user)
 	responseUser := CreateResponseUser(user)
@@ -49,13 +50,13 @@ func GetUsers(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseUsers)
 }
 
-func findUser(id int, user *models.User) error {
-	database.Database.Db.Find(&user, "email = ?", id)
-	if user.ID == 0 {
-		return errors.New("user does not exist")
-	}
-	return nil
-}
+// func findUser(id int, user *models.User) error {
+// 	database.Database.Db.Find(&user, "email = ?", id)
+// 	if user.ID == 0 {
+// 		return errors.New("user does not exist")
+// 	}
+// 	return nil
+// }
 
 func findUserByEmail(email string, user *models.User) error {
 	database.Database.Db.Find(&user, "email_id = ?", email)
@@ -65,50 +66,33 @@ func findUserByEmail(email string, user *models.User) error {
 	return nil
 }
 
-func GetUserByEmail(c *fiber.Ctx) error {
-	email := c.Params("email")
-	var user models.User
-	if err := findUserByEmail(email, &user); err != nil {
-		return c.Status(400).JSON(err.Error())
+func GetUserByJWTToken(c *fiber.Ctx) error {
+	if !AuthenticateRequest(c) {
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
 	}
-	responseUser := CreateResponseUser(user)
-	return c.Status(200).JSON(responseUser)
-}
-
-func GetUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("email")
 	var user models.User
+	err := FindUserByJWT(c, &user)
 	if err != nil {
-		return c.Status(400).JSON("Please ensure that :id is an integer")
+		return c.Status(201).SendString("Something went wrong")
 	}
-	if err := findUser(id, &user); err != nil {
-		return c.Status(400).JSON(err.Error())
-	}
+	fmt.Println(user)
 	responseUser := CreateResponseUser(user)
 	return c.Status(200).JSON(responseUser)
 }
 
 func UpdateUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-
+	if !AuthenticateRequest(c) {
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
+	}
 	var user models.User
-
+	err := FindUserByJWT(c, &user)
 	if err != nil {
-		return c.Status(400).JSON("Please ensure that :id is an integer")
+		return c.Status(201).SendString("Something went wrong")
 	}
-
-	err = findUser(id, &user)
-
-	if err != nil {
-		return c.Status(400).JSON(err.Error())
-	}
-
 	type UpdateUser struct {
 		Name    string `json:"name"`
-		EmailID string `json:"email_id"`
 		PhoneNo string `json:"phone_no"`
 	}
-
 	var updateData UpdateUser
 
 	if err := c.BodyParser(&updateData); err != nil {
@@ -116,7 +100,6 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	user.Name = updateData.Name
-	user.EmailID = updateData.EmailID
 	user.PhoneNo = updateData.PhoneNo
 
 	database.Database.Db.Save(&user)

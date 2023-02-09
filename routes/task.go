@@ -2,6 +2,7 @@ package routes
 
 import (
 	"errors"
+	"time"
 	"to-do-backend/database"
 	"to-do-backend/models"
 
@@ -9,10 +10,11 @@ import (
 )
 
 type Task struct {
-	ID       uint   `json:"id" gorm:"primaryKey"`
-	Heading  string `json:"heading"`
-	Content  string `json:"content"`
-	Progress int    `json:"progress"`
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	CreatedAt time.Time `json:"time"`
+	Heading   string    `json:"heading"`
+	Content   string    `json:"content"`
+	Progress  int       `json:"progress"`
 }
 
 func CreateResponseTask(task models.Task) Task {
@@ -36,7 +38,7 @@ func getEmailFromJWT(c *fiber.Ctx) string {
 
 func CreateTask(c *fiber.Ctx) error {
 	if !AuthenticateRequest(c) {
-		return c.Status(400).SendString("JWT Token couldn't be authenticated")
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
 	}
 	var task models.Task
 	if err := c.BodyParser(&task); err != nil {
@@ -53,7 +55,7 @@ func CreateTask(c *fiber.Ctx) error {
 
 func GetAllTasks(c *fiber.Ctx) error {
 	if !AuthenticateRequest(c) {
-		return c.Status(400).SendString("JWT Token couldn't be authenticated")
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
 	}
 	var user models.User
 	if err := findUserByEmail(getEmailFromJWT(c), &user); err != nil {
@@ -74,22 +76,22 @@ func FindTaskById(id uint, task *models.Task) error {
 
 func UpdateTask(c *fiber.Ctx) error {
 	if !AuthenticateRequest(c) {
-		return c.Status(400).SendString("JWT Token couldn't be authenticated")
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
 	}
 	var user models.User
 	if err := findUserByEmail(getEmailFromJWT(c), &user); err != nil {
-		return c.Status(400).SendString(err.Error())
+		return c.Status(201).SendString(err.Error())
 	}
 	var task models.Task
 	if err := c.BodyParser(&task); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return c.Status(202).SendString(err.Error())
 	}
 	err := FindTaskById(task.ID, &task)
 	if err != nil {
 		return errors.New("Task doesn't exist")
 	}
 	if err := c.BodyParser(&task); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return c.Status(203).JSON(err.Error())
 	}
 	database.Database.Db.Save(&task)
 	return c.Status(200).JSON(task)
