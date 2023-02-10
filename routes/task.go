@@ -98,6 +98,9 @@ func UpdateTask(c *fiber.Ctx) error {
 }
 
 func DeleteTask(c *fiber.Ctx) error {
+	if !AuthenticateRequest(c) {
+		return c.Status(201).SendString("JWT Token couldn't be authenticated")
+	}
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return c.Status(400).SendString("Invalid JSON")

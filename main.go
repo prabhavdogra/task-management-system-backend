@@ -9,16 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-func welcome(c *fiber.Ctx) error {
-	return c.SendString("Welcome to my awesome API")
-}
-
 func setupRoutes(app *fiber.App) {
-	app.Get("/api", welcome)
-
-	// Garbage Endpoints
-	app.Delete("/api/auth/delete", routes.DeleteUser)
-
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
 	app.Post("/api/auth/signup", routes.Signup)
@@ -40,10 +31,11 @@ func setupRoutes(app *fiber.App) {
 func main() {
 	database.ConnectDb()
 	app := fiber.New()
+
 	// Default config
 	app.Use(cors.New())
 
-	// Or extend your config for customization
+	// For CORS
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept",

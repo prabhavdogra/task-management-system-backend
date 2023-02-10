@@ -10,7 +10,6 @@ import (
 )
 
 type User struct {
-	// This is not the model, more like a serializer
 	ID       uint   `json:"id"`
 	Name     string `json:"name"`
 	EmailID  string `json:"email_id"`
@@ -49,14 +48,6 @@ func GetUsers(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(responseUsers)
 }
-
-// func findUser(id int, user *models.User) error {
-// 	database.Database.Db.Find(&user, "email = ?", id)
-// 	if user.ID == 0 {
-// 		return errors.New("user does not exist")
-// 	}
-// 	return nil
-// }
 
 func findUserByEmail(email string, user *models.User) error {
 	database.Database.Db.Find(&user, "email_id = ?", email)
