@@ -47,5 +47,5 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 	setupRoutes(app)
-	log.Fatal(app.Listen(":4000"))
+	log.Fatal(app.Listen("0.0.0.0:4000"))
 }
