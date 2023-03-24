@@ -9,7 +9,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
+func Health(c *fiber.Ctx) error {
+	return c.Status(200).SendString("Healthy")
+}
+
 func setupRoutes(app *fiber.App) {
+	app.Get("/api/health", Health)
+
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
 	app.Post("/api/auth/signup", routes.Signup)
@@ -41,5 +47,5 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 	setupRoutes(app)
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":4000"))
 }
