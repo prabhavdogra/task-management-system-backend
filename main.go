@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"to-do-backend/database"
 	"to-do-backend/routes"
 
@@ -10,11 +11,11 @@ import (
 )
 
 func Health(c *fiber.Ctx) error {
-	return c.Status(200).SendString("Healthy")
+	return c.Status(200).SendString("Healthy server")
 }
 
 func setupRoutes(app *fiber.App) {
-	app.Get("/api/health", Health)
+	app.Get("/", Health)
 
 	// Authentication Endpoints
 	app.Post("/api/auth/login", routes.Login)
@@ -47,5 +48,9 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 	setupRoutes(app)
-	log.Fatal(app.Listen("0.0.0.0:4000"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
